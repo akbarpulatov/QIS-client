@@ -14,9 +14,11 @@ void setup() {
 }
 
 void loop() {
-  int input1 = digitalRead(button1);
-  int input2 = digitalRead(button2);
-  int input3 = digitalRead(button3);
+  delay(500);
+  
+  bool input1 = digitalRead(button1);
+  bool input2 = digitalRead(button2);
+  bool input3 = digitalRead(button3);
 
   Serial.print("Input 1 = ");
   Serial.println(input1);
@@ -29,5 +31,12 @@ void loop() {
 
   Serial.println("===========================================");
 
-  delay(500);
+  if (!input1 || !input2 || !input3) {
+    Serial.println("At least one of buttons were pressed!");
+  }
+
+
+  
+
+  
 }
