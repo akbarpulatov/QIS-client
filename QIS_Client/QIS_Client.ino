@@ -14,29 +14,28 @@ void setup() {
 }
 
 void loop() {
+  Serial.println("=======");
   delay(500);
   
   bool input1 = digitalRead(button1);
   bool input2 = digitalRead(button2);
   bool input3 = digitalRead(button3);
 
-  Serial.print("Input 1 = ");
-  Serial.println(input1);
-  
-  Serial.print("Input 2 = ");
-  Serial.println(input2);
-  
-  Serial.print("Input 3 = ");
-  Serial.println(input3);
-
-  Serial.println("===========================================");
-
+  int pressedButton;
   if (!input1 || !input2 || !input3) {
-    Serial.println("At least one of buttons were pressed!");
+    if(!input1) {
+      pressedButton = 1;
+    } else if(!input2) {
+      pressedButton = 2;
+    } else {
+      pressedButton = 3;
+    }
+        
+    Serial.print("Pressed Button Was: ");
+    Serial.println(pressedButton);
+  
+  
+  
   }
 
-
-  
-
-  
 }
