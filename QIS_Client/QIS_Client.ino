@@ -1,42 +1,33 @@
-#include <UIPEthernet.h>
+const int button1 = 4;
+const int button2 = 5;
+const int button3 = 6;
 
-EthernetClient client;
-uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
 
 void setup() {
+
   Serial.begin(115200);
+  pinMode(button1, INPUT);
+  pinMode(button2, INPUT);
+  pinMode(button3, INPUT);
+  
 
-  char server[] = "192.168.233.96";
-
-  String data = "\"score\" : ";
-  data += "\"3\"";
-
-  if(Ethernet.begin(mac) == 0){
-    Serial.println("Failed to configure Ethernet using DHCP");
-    while(1);
-  }
-
-  if (client.connect(server,8080)){
-      Serial.println("Connected to server");
-      client.println("POST / HTTP/1.1");
-      client.println("Host: QIS");
-      client.println("Content-Type: application/x-www-form-urlencoded");
-      client.print("Content-Length: ");
-      client.println(data.length());
-      client.println("{");
-      client.println(data);
-      client.println("}");
-      
-  }else{
-      Serial.println("Connection to server failed");
-  }
 }
 
-void loop() {  
-  while(client.connected()){
-    if(client.available()){
-      char c = client.read();
-      Serial.print(c);  
-    }
-  }
+void loop() {
+  int input1 = digitalRead(button1);
+  int input2 = digitalRead(button2);
+  int input3 = digitalRead(button3);
+
+  Serial.print("Input 1 = ");
+  Serial.println(input1);
+  
+  Serial.print("Input 2 = ");
+  Serial.println(input2);
+  
+  Serial.print("Input 3 = ");
+  Serial.println(input3);
+
+  Serial.println("===========================================");
+
+  delay(500);
 }
