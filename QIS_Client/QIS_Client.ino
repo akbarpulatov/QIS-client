@@ -11,7 +11,7 @@
 bool isIdDetected = false;
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;
-
+uint8_t pressedButton;
 
 #define PN532_IRQ   (2)
 #define PN532_RESET (3)
@@ -19,23 +19,41 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
-
-// OAUTH key from http://arduino-tweet.appspot.com/
-#define TOKEN   "Insert-your-token-here"
-
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
 const char website[] PROGMEM = "192.168.233.96";
-char tweet[100];
-//String tweet;
 static byte session;
-
 byte Ethernet::buffer[700];
 Stash stash;
 
 char UID[] = "5254454";
 char score[] = "2";
+uint32_t msTimer;
+
+static void SetupHttp() {
+//  Serial.begin(115200);
+//  Serial.println("\n[Twitter Client]");
+
+  // Change 'SS' to your Slave Select pin, if you arn't using the default pin
+  if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
+    Serial.println(F("Failed to access Ethernet controller"));
+  if (!ether.dhcpSetup())
+    Serial.println(F("DHCP failed"));
+
+  ether.printIp("IP:  ", ether.myip);
+  ether.printIp("GW:  ", ether.gwip);
+  ether.printIp("DNS: ", ether.dnsip);
+
+  if (!ether.dnsLookup(website))
+    Serial.println(F("DNS failed"));
+
+  ether.printIp("SRV: ", ether.hisip);
+
+//  sendToTwitter();
+  
+  
+}
 
 static void sendToTwitter () {
   Serial.println("Sending tweet...");
@@ -132,45 +150,63 @@ void setup() {
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
 
-  //SetupTimer();
+  
   SetupNFC();
   CheckNFC();
+  SetupHttp();
+  SetupTimer();
 
 }
 //===============================================
 void loop() {
-  Serial.println("=======");
-  delay(500);
+  ether.packetLoop(ether.packetReceive());
+
+  
+// if(!msTimer){
+//  msTimer = 1000;
+//  Serial.println("+");
+//  sendToTwitter();
+// }
+//  Serial.println("=======");
+//  delay(500);
+
+  if(!msTimer){
   
   bool input1 = digitalRead(button1);
   bool input2 = digitalRead(button2);
   bool input3 = digitalRead(button3);
 
-  uint8_t pressedButton;
-  if (!input1 || !input2 || !input3) {
-    if(!input1) {
-      pressedButton = 1;
-    } else if(!input2) {
-      pressedButton = 2;
-    } else {
-      pressedButton = 3;
-    }
-        
-    Serial.print("Pressed Button Was: ");
-    Serial.println(pressedButton);
-    Serial.print("uid is: ");
+  
     
-     for (uint8_t i=0; i < uidLength; i++) 
-    {
-      Serial.print(uid[i], HEX); 
+  
+  
+    if (!input1 || !input2 || !input3) {
+      
+      if(!input1) {
+        pressedButton = 1;
+      } else if(!input2) {
+        pressedButton = 2;
+      } else {
+        pressedButton = 3;
+      }
+          
+      Serial.print("Pressed Button Was: ");
+      Serial.println(pressedButton);
+      Serial.print("uid is: ");
+      
+       for (uint8_t i=0; i < uidLength; i++) 
+      {
+        Serial.print(uid[i], HEX); 
+      }
+      Serial.println();
+  
+  //    char* uidsend = malloc(5);
+  //    sprintf(uidsend,"%X%X%X%X", uid[0],uid[1],uid[2],uid[3]);
+  //    Serial.println(uidsend);
+      // send Http post request
+      msTimer = 1000;
     }
-    Serial.println();
 
-//    char* uidsend = malloc(5);
-//    sprintf(uidsend,"%X%X%X%X", uid[0],uid[1],uid[2],uid[3]);
-//    Serial.println(uidsend);
-    // send Http post request
-    
   }
 }
 //===============================================
@@ -184,7 +220,7 @@ void SetupTimer() {
 
     TCCR1B |= (1 << WGM12);  // включить CTC режим 
     TCCR1B |= (1 << CS10); // Установить биты на коэффициент деления 1024
-    TCCR1B |= (1 << CS12);
+//    TCCR1B |= (1 << CS12);
 
     TIMSK1 |= (1 << OCIE1A);  // включить прерывание по совпадению таймера 
     sei(); // включить глобальные прерывания
@@ -192,6 +228,5 @@ void SetupTimer() {
 
 ISR(TIMER1_COMPA_vect)
 {
-  Serial.println("Timer is Fired!");
-  //CheckNFC();
+  if(msTimer)msTimer--;
 }
