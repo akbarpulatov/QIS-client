@@ -40,7 +40,7 @@ void SetupNFC() {
   
   Serial.println("Waiting for an ISO14443A card");
 }
-
+//===============================================
 void CheckNFC() {
   boolean success;
 //  uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
