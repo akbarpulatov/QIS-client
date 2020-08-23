@@ -1,0 +1,7 @@
+POST / HTTP/1.0
+Host: 192.168.233.96
+Content-Length: 642 
+{
+"UID" : "5254454",
+"Score" : 2"
+}
