@@ -59,14 +59,15 @@ static void sendToTwitter () {
   Serial.println("Sending tweet...");
   byte sd = stash.create();
 
-
-  
   stash.println("{");
   stash.print("\"UID\" : \"");
-  stash.print(UID);
+  for (uint8_t i=0; i < uidLength; i++) 
+  {
+    stash.print(uid[i], HEX); 
+  }
   stash.println("\",");
   stash.print("\"Score\" : ");
-  stash.print(score);
+  stash.print(pressedButton);
   stash.println("\"\r\n}");
   
   stash.save();
@@ -82,8 +83,6 @@ static void sendToTwitter () {
     "\r\n"
     "$H"),
   website, website, stash_size, sd);
-
-  
 
   // send the packet - this also releases all stash buffers once done
   // Save the session ID so we can watch for it in the main loop.
@@ -150,25 +149,14 @@ void setup() {
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
 
-  
   SetupNFC();
   CheckNFC();
   SetupHttp();
   SetupTimer();
-
 }
 //===============================================
 void loop() {
   ether.packetLoop(ether.packetReceive());
-
-  
-// if(!msTimer){
-//  msTimer = 1000;
-//  Serial.println("+");
-//  sendToTwitter();
-// }
-//  Serial.println("=======");
-//  delay(500);
 
   if(!msTimer){
   
@@ -176,10 +164,6 @@ void loop() {
   bool input2 = digitalRead(button2);
   bool input3 = digitalRead(button3);
 
-  
-    
-  
-  
     if (!input1 || !input2 || !input3) {
       
       if(!input1) {
@@ -199,14 +183,9 @@ void loop() {
         Serial.print(uid[i], HEX); 
       }
       Serial.println();
-  
-  //    char* uidsend = malloc(5);
-  //    sprintf(uidsend,"%X%X%X%X", uid[0],uid[1],uid[2],uid[3]);
-  //    Serial.println(uidsend);
-      // send Http post request
+      sendToTwitter();    
       msTimer = 1000;
     }
-
   }
 }
 //===============================================
