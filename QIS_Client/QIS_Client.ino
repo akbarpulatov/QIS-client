@@ -17,6 +17,7 @@ uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;
 uint8_t pressedButton;
 boolean toggle = false;
+boolean isServerAvailable = false;
 
 #define PN532_IRQ   (2)
 #define PN532_RESET (3)
@@ -24,18 +25,24 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
+#define SERVER "192.168.233.96"
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
-const char website[] PROGMEM = "192.168.233.96";
+const char website[] PROGMEM = SERVER;
 static byte session;
 byte Ethernet::buffer[700];
 Stash stash;
+
+#define msTimer2 pingTimeout
 
 char UID[] = "5254454";
 char score[] = "2";
 uint32_t msTimer;
 uint32_t msTimer1;
+uint32_t msTimer2;
+
+
 #define msTimerPeriod 2000
 static uint32_t timer;
 
@@ -192,23 +199,11 @@ void setup() {
 void loop() {
   PingCheck();
 
+  if(!pingTimeout) {
+    isServerAvailable = false;
+  }
 
-//  if (len > 0 && ether.packetLoopIcmpCheckReply("192.168.233.96")) {
-//    Serial.print("  ");
-//    Serial.print((micros() - timer) * 0.001, 3);
-//    Serial.println(" ms");
-//  }
-//
-//    // ping a remote server once every few seconds
-//  if (micros() - timer >= 5000000) {
-//    ether.printIp("Pinging: ", ether.hisip);
-//    timer = micros();
-//    ether.clientIcmpRequest(ether.hisip);
-//  }
-
-
-
-  if(!msTimer1) {
+  if(!msTimer1 && isServerAvailable) {
     toggle = !toggle;
 //    digitalWrite(ledRed, toggle);
 //    digitalWrite(ledGreen, toggle);
@@ -254,7 +249,7 @@ static void gotPinged (byte* ptr) {
   ether.printIp(">>> ping from: ", ptr);
 }
 void PingSetup() {
-  ether.parseIp(ether.hisip, "192.168.233.96");
+  ether.parseIp(ether.hisip, SERVER);
 //#endif
   ether.printIp("SRV: ", ether.hisip);
     
@@ -272,6 +267,8 @@ void PingCheck() {
     Serial.print("  ");
     Serial.print((micros() - timer) * 0.001, 3);
     Serial.println(" ms");
+    pingTimeout = 7000;
+    isServerAvailable = true;
   }
   
   // ping a remote server once every few seconds
@@ -279,6 +276,7 @@ void PingCheck() {
     ether.printIp("Pinging: ", ether.hisip);
     timer = micros();
     ether.clientIcmpRequest(ether.hisip);
+    
   }
 }
 //===============================================
@@ -302,4 +300,5 @@ ISR(TIMER1_COMPA_vect)
 {
   if(msTimer)msTimer--;
   if(msTimer1)msTimer1--;
+  if(msTimer2)msTimer2--;
 }
