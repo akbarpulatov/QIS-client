@@ -98,12 +98,20 @@ static void sendToTwitter () {
 // ======================================================================
 
 void SetupNFC() {
-    nfc.begin();
+  digitalWrite(ledRed, HIGH);
+  digitalWrite(ledGreen, LOW);
+  nfc.begin();
 
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (! versiondata) {
     Serial.print("Didn't find PN53x board");
-    while (1); // halt
+    while (1) {
+      if(!msTimer1){
+        toggle = !toggle;
+        digitalWrite(ledRed, toggle);
+        msTimer1 = 50;
+      }  
+    }; // halt
   }
 
   // Got ok data, print it out!
@@ -139,12 +147,23 @@ void CheckNFC() {
     }
     Serial.println("");
   // Wait 1 second before continuing
-  delay(1000);
+//  delay(1000);
+  digitalWrite(ledRed, LOW);
+  digitalWrite(ledGreen, HIGH);
   }
   else
   {
     // PN532 probably timed out waiting for a card
     Serial.println("Timed out waiting for a card");
+    while (1) {
+//      Serial.print("0");
+      if(!msTimer1){
+        Serial.print("0");
+        toggle = !toggle;
+        digitalWrite(ledRed, toggle);
+        msTimer1 = 50;
+      }
+    };
   }
   
 }
@@ -160,14 +179,14 @@ void setup() {
   pinMode(ledGreen, OUTPUT);
   pinMode(ledYellow, OUTPUT);
 
-  digitalWrite(ledRed, HIGH);
-  digitalWrite(ledGreen, HIGH);
-  digitalWrite(ledYellow, HIGH);
+  digitalWrite(ledRed, LOW);
+  digitalWrite(ledGreen, LOW);
+  digitalWrite(ledYellow, LOW);
 
+  SetupTimer();
   SetupNFC();
   CheckNFC();
   SetupHttp();
-  SetupTimer();
 }
 //===============================================
 void loop() {
@@ -175,8 +194,8 @@ void loop() {
 
   if(!msTimer1) {
     toggle = !toggle;
-    digitalWrite(ledRed, toggle);
-    digitalWrite(ledGreen, toggle);
+//    digitalWrite(ledRed, toggle);
+//    digitalWrite(ledGreen, toggle);
     digitalWrite(ledYellow, toggle);
     msTimer1 = 50;
   }
