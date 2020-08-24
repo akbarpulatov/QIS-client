@@ -8,10 +8,15 @@
 #define button2 5
 #define button3 6
 
+#define ledRed      26
+#define ledGreen    28
+#define ledYellow   30
+
 bool isIdDetected = false;
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
 uint8_t uidLength;
 uint8_t pressedButton;
+boolean toggle = false;
 
 #define PN532_IRQ   (2)
 #define PN532_RESET (3)
@@ -30,6 +35,8 @@ Stash stash;
 char UID[] = "5254454";
 char score[] = "2";
 uint32_t msTimer;
+uint32_t msTimer1;
+#define msTimerPeriod 2000
 
 static void SetupHttp() {
 //  Serial.begin(115200);
@@ -149,6 +156,14 @@ void setup() {
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
 
+  pinMode(ledRed, OUTPUT);
+  pinMode(ledGreen, OUTPUT);
+  pinMode(ledYellow, OUTPUT);
+
+  digitalWrite(ledRed, HIGH);
+  digitalWrite(ledGreen, HIGH);
+  digitalWrite(ledYellow, HIGH);
+
   SetupNFC();
   CheckNFC();
   SetupHttp();
@@ -157,6 +172,14 @@ void setup() {
 //===============================================
 void loop() {
   ether.packetLoop(ether.packetReceive());
+
+  if(!msTimer1) {
+    toggle = !toggle;
+    digitalWrite(ledRed, toggle);
+    digitalWrite(ledGreen, toggle);
+    digitalWrite(ledYellow, toggle);
+    msTimer1 = 50;
+  }
 
   if(!msTimer){
   
@@ -184,7 +207,7 @@ void loop() {
       }
       Serial.println();
       sendToTwitter();    
-      msTimer = 1000;
+      msTimer = msTimerPeriod;
     }
   }
 }
@@ -208,4 +231,5 @@ void SetupTimer() {
 ISR(TIMER1_COMPA_vect)
 {
   if(msTimer)msTimer--;
+  if(msTimer1)msTimer1--;
 }
