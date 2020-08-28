@@ -14,8 +14,8 @@
 #define ledYellow   30
 
 
-#define BuzzerPlayTime 30
-#define BuzzerFrequency 2900
+#define BuzzerPlayTime 20
+#define BuzzerFrequency 2700
 
 bool isIdDetected = false;
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
@@ -48,8 +48,6 @@ uint32_t msTimer;
 uint32_t msTimer1;
 uint32_t msTimer2;
 uint32_t msTimer3;
-
-//#define msTimer3 NFCCardReadTime
 
 #define msTimerPeriod 4000
 static uint32_t timer;
@@ -123,7 +121,6 @@ void SetupNFC() {
       if(!msTimer1){
         toggle = !toggle;
         digitalWrite(ledRed, toggle);
-        tone(buzzer, BuzzerFrequency);
         msTimer1 = 50;
       }  
     }; // halt
@@ -153,6 +150,13 @@ void CheckNFC() {
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
   
   if (success) {
+
+
+
+    
+    tone(buzzer, BuzzerFrequency);
+    NFCCardReadTime = BuzzerPlayTime;
+    
     Serial.println("Found a card!");
     Serial.print("UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
     Serial.print("UID Value: ");
@@ -223,7 +227,7 @@ void loop() {
     msTimer1 = 200;
   }
 
-  if(msTimer < msTimerPeriod - BuzzerPlayTime){
+  if(!NFCCardReadTime){
     noTone(buzzer);
   }
 
@@ -244,6 +248,8 @@ void loop() {
       }
       
       tone(buzzer, BuzzerFrequency);  
+      NFCCardReadTime = BuzzerPlayTime;
+      
       Serial.print("Pressed Button Was: ");
       Serial.println(pressedButton);
       Serial.print("uid is: ");
