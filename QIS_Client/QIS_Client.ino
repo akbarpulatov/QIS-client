@@ -8,9 +8,14 @@
 #define button2 5
 #define button3 6
 
+#define buzzer 8
 #define ledRed      26
 #define ledGreen    28
 #define ledYellow   30
+
+
+#define BuzzerPlayTime 30
+#define BuzzerFrequency 2900
 
 bool isIdDetected = false;
 uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
@@ -35,13 +40,16 @@ byte Ethernet::buffer[700];
 Stash stash;
 
 #define msTimer2 pingTimeout
+#define msTimer3 NFCCardReadTime
 
 char UID[] = "5254454";
 char score[] = "2";
 uint32_t msTimer;
 uint32_t msTimer1;
 uint32_t msTimer2;
+uint32_t msTimer3;
 
+//#define msTimer3 NFCCardReadTime
 
 #define msTimerPeriod 4000
 static uint32_t timer;
@@ -115,6 +123,7 @@ void SetupNFC() {
       if(!msTimer1){
         toggle = !toggle;
         digitalWrite(ledRed, toggle);
+        tone(buzzer, BuzzerFrequency);
         msTimer1 = 50;
       }  
     }; // halt
@@ -184,7 +193,8 @@ void setup() {
   pinMode(ledRed, OUTPUT);
   pinMode(ledGreen, OUTPUT);
   pinMode(ledYellow, OUTPUT);
-
+  pinMode(buzzer, OUTPUT);
+  
   digitalWrite(ledRed, LOW);
   digitalWrite(ledGreen, LOW);
   digitalWrite(ledYellow, LOW);
@@ -213,6 +223,10 @@ void loop() {
     msTimer1 = 200;
   }
 
+  if(msTimer < msTimerPeriod - BuzzerPlayTime){
+    noTone(buzzer);
+  }
+
   if(!msTimer){
   
   bool input1 = digitalRead(button1);
@@ -228,7 +242,8 @@ void loop() {
       } else {
         pressedButton = 3;
       }
-          
+      
+      tone(buzzer, BuzzerFrequency);  
       Serial.print("Pressed Button Was: ");
       Serial.println(pressedButton);
       Serial.print("uid is: ");
@@ -301,4 +316,5 @@ ISR(TIMER1_COMPA_vect)
   if(msTimer)msTimer--;
   if(msTimer1)msTimer1--;
   if(msTimer2)msTimer2--;
+  if(msTimer3)msTimer3--;
 }
