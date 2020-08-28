@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_PN532.h>
+#include <ArduinoUniqueID.h>
 
 #define button1 4
 #define button2 5
@@ -30,7 +31,7 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
-#define SERVER "192.168.233.96"
+#define SERVER "192.168.233.89"
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
@@ -85,9 +86,20 @@ static void sendToTwitter () {
     stash.print(uid[i], HEX); 
   }
   stash.println("\",");
-  stash.print("\"Score\" : ");
+  stash.print("\"Score\" : \"");
   stash.print(pressedButton);
+  stash.println("\",");
+
+  stash.print("\"DeviceID\" : \"");
+  for (size_t i = 0; i < UniqueIDsize; i++) {
+    if (UniqueID[i] < 0x10) 
+      stash.print("0");
+    stash.print(UniqueID[i], HEX);
+    if(i != UniqueIDsize - 1)
+      stash.print(" ");
+  }
   stash.println("\"\r\n}");
+  
   
   stash.save();
   int stash_size = stash.size();
