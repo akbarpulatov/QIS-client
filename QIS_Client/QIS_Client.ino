@@ -25,7 +25,7 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
-#define SERVER "192.168.233.96"
+#define SERVER "192.168.233.89"
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
@@ -43,7 +43,7 @@ uint32_t msTimer1;
 uint32_t msTimer2;
 
 
-#define msTimerPeriod 2000
+#define msTimerPeriod 4000
 static uint32_t timer;
 
 static void SetupHttp() {
@@ -210,7 +210,7 @@ void loop() {
     digitalWrite(ledYellow, toggle);
 //    PingCheck();
     
-    msTimer1 = 1000;
+    msTimer1 = 200;
   }
 
   if(!msTimer){
