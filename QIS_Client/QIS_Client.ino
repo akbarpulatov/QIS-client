@@ -14,7 +14,7 @@
 #define ledYellow   30
 
 
-#define BuzzerPlayTime 20
+#define BuzzerPlayTime 40
 #define BuzzerFrequency 2700
 
 bool isIdDetected = false;
@@ -30,7 +30,7 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
-#define SERVER "192.168.233.89"
+#define SERVER "192.168.233.96"
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
@@ -149,14 +149,7 @@ void CheckNFC() {
   // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
   
-  if (success) {
-
-
-
-    
-    tone(buzzer, BuzzerFrequency);
-    NFCCardReadTime = BuzzerPlayTime;
-    
+  if (success) {  
     Serial.println("Found a card!");
     Serial.print("UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
     Serial.print("UID Value: ");
@@ -169,6 +162,10 @@ void CheckNFC() {
 //  delay(1000);
   digitalWrite(ledRed, LOW);
   digitalWrite(ledGreen, HIGH);
+
+    tone(buzzer, BuzzerFrequency);
+    delay(BuzzerPlayTime);
+    noTone(buzzer);
   }
   else
   {
