@@ -31,7 +31,7 @@ Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
 // ======================================================================
 #include <EtherCard.h>
-#define SERVER "192.168.233.89"
+#define SERVER "192.168.233.96"
 // ethernet interface mac address, must be unique on the LAN
 byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
 
@@ -215,12 +215,12 @@ void setup() {
   SetupTimer();
   SetupNFC();
   CheckNFC();
-  SetupHttp();
-  PingSetup();
+  //SetupHttp();
+  //PingSetup();
 }
 //===============================================
 void loop() {
-  PingCheck();
+  //PingCheck();
 
   if(!pingTimeout) {
     isServerAvailable = false;
