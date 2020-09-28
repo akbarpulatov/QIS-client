@@ -2,8 +2,10 @@
 #include <avr/interrupt.h>
 #include <Wire.h>
 #include <SPI.h>
+#include <UIPEthernet.h>
 #include <Adafruit_PN532.h>
 #include <ArduinoUniqueID.h>
+
 
 #define button1 4
 #define button2 5
@@ -25,100 +27,103 @@ uint8_t pressedButton;
 boolean toggle = false;
 boolean isServerAvailable = false;
 
-#define PN532_IRQ   (2)
-#define PN532_RESET (3)
-Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
-
-// ======================================================================
-#include <EtherCard.h>
-#define SERVER "192.168.233.96"
-// ethernet interface mac address, must be unique on the LAN
-byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
-
-const char website[] PROGMEM = SERVER;
-static byte session;
-byte Ethernet::buffer[700];
-Stash stash;
-
 #define msTimer2 pingTimeout
 #define msTimer3 NFCCardReadTime
+#define msTimerPeriod 4000
 
-char UID[] = "5254454";
-char score[] = "2";
 uint32_t msTimer;
 uint32_t msTimer1;
 uint32_t msTimer2;
 uint32_t msTimer3;
 
-#define msTimerPeriod 4000
 static uint32_t timer;
 
-static void SetupHttp() {
-//  Serial.begin(115200);
-//  Serial.println("\n[Twitter Client]");
+#define PN532_IRQ   (2)
+#define PN532_RESET (3)
+Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 
-  // Change 'SS' to your Slave Select pin, if you arn't using the default pin
-  if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
-    Serial.println(F("Failed to access Ethernet controller"));
-  if (!ether.dhcpSetup())
-    Serial.println(F("DHCP failed"));
-
-  ether.printIp("IP:  ", ether.myip);
-  ether.printIp("GW:  ", ether.gwip);
-  ether.printIp("DNS: ", ether.dnsip);
-
-  if (!ether.dnsLookup(website))
-    Serial.println(F("DNS failed"));
-
-  ether.printIp("SRV: ", ether.hisip);
-
-//  sendToTwitter();  
-}
-
-static void sendToTwitter () {
-  Serial.println("Sending tweet...");
-  byte sd = stash.create();
-
-  stash.println("{");
-  stash.print("\"UID\" : \"");
-  for (uint8_t i=0; i < uidLength; i++) 
-  {
-    stash.print(uid[i], HEX); 
-  }
-  stash.println("\",");
-  stash.print("\"Score\" : \"");
-  stash.print(pressedButton);
-  stash.println("\",");
-
-  stash.print("\"DeviceID\" : \"");
-  for (size_t i = 0; i < UniqueIDsize; i++) {
-    if (UniqueID[i] < 0x10) 
-      stash.print("0");
-    stash.print(UniqueID[i], HEX);
-    if(i != UniqueIDsize - 1)
-      stash.print(" ");
-  }
-  stash.println("\"\r\n}");
-  
-  
-  stash.save();
-  int stash_size = stash.size();
-
-
-  // Compose the http POST request, taking the headers below and appending
-  // previously created stash in the sd holder.
-  Stash::prepare(PSTR("POST / HTTP/1.0" "\r\n"
-    "Host: $F" "\r\n"
-    "Content-Length: $D" " "
-    "$n"
-    "\r\n"
-    "$H"),
-  website, website, stash_size, sd);
-
-  // send the packet - this also releases all stash buffers once done
-  // Save the session ID so we can watch for it in the main loop.
-  session = ether.tcpSend();
-}
+// ======================================================================
+//#include <EtherCard.h>
+//#define SERVER "192.168.233.96"
+//// ethernet interface mac address, must be unique on the LAN
+//byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
+//
+//const char website[] PROGMEM = SERVER;
+//static byte session;
+//byte Ethernet::buffer[700];
+//Stash stash;
+//
+//
+//char UID[] = "5254454";
+//char score[] = "2";
+//
+//
+//static void SetupHttp() {
+////  Serial.begin(115200);
+////  Serial.println("\n[Twitter Client]");
+//
+//  // Change 'SS' to your Slave Select pin, if you arn't using the default pin
+//  if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
+//    Serial.println(F("Failed to access Ethernet controller"));
+//  if (!ether.dhcpSetup())
+//    Serial.println(F("DHCP failed"));
+//
+//  ether.printIp("IP:  ", ether.myip);
+//  ether.printIp("GW:  ", ether.gwip);
+//  ether.printIp("DNS: ", ether.dnsip);
+//
+//  if (!ether.dnsLookup(website))
+//    Serial.println(F("DNS failed"));
+//
+//  ether.printIp("SRV: ", ether.hisip);
+//
+////  sendToTwitter();  
+//}
+//
+//static void sendToTwitter () {
+//  Serial.println("Sending tweet...");
+//  byte sd = stash.create();
+//
+//  stash.println("{");
+//  stash.print("\"UID\" : \"");
+//  for (uint8_t i=0; i < uidLength; i++) 
+//  {
+//    stash.print(uid[i], HEX); 
+//  }
+//  stash.println("\",");
+//  stash.print("\"Score\" : \"");
+//  stash.print(pressedButton);
+//  stash.println("\",");
+//
+//  stash.print("\"DeviceID\" : \"");
+//  for (size_t i = 0; i < UniqueIDsize; i++) {
+//    if (UniqueID[i] < 0x10) 
+//      stash.print("0");
+//    stash.print(UniqueID[i], HEX);
+//    if(i != UniqueIDsize - 1)
+//      stash.print(" ");
+//  }
+//  stash.println("\"\r\n}");
+//  
+//  
+//  stash.save();
+//  int stash_size = stash.size();
+//
+//
+//  // Compose the http POST request, taking the headers below and appending
+//  // previously created stash in the sd holder.
+//  Stash::prepare(PSTR("POST / HTTP/1.0" "\r\n"
+//    "Host: $F" "\r\n"
+//    "Content-Length: $D" " "
+//    "$n"
+//    "\r\n"
+//    "$H"),
+//  website, website, stash_size, sd);
+//
+//  // send the packet - this also releases all stash buffers once done
+//  // Save the session ID so we can watch for it in the main loop.
+//  session = ether.tcpSend();
+//}
 // ======================================================================
 
 void SetupNFC() {
@@ -196,6 +201,11 @@ void CheckNFC() {
   
 }
 //===============================================
+byte mac[] = {0xAE, 0xB2, 0x26, 0xE4, 0x4A, 0x5C}; // MAC-адрес
+byte ip[] = {192, 168, 233, 98}; // IP-адрес клиента
+byte ipServ[] = {192, 168, 233, 96}; // IP-адрес сервера
+EthernetClient client; // создаем клиента
+//===============================================
 void setup() {
 
   Serial.begin(115200);
@@ -217,14 +227,52 @@ void setup() {
   CheckNFC();
   //SetupHttp();
   //PingSetup();
+
+  
+  Ethernet.begin(mac, ip); // инициализация контроллера
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("connecting...");
+  // устанавливаем соединение с сервером
+  if (client.connect(ipServ, 80)) {
+    Serial.println("connected"); // успешно
+  }
+  else {
+    Serial.println("connection failed"); // ошибка
+  }
+  
 }
 //===============================================
 void loop() {
+  // все, что приходит с сервера, печатаем в UART
+  if (client.available()) {
+    char chr = client.read();
+    Serial.print(chr);
+  }
+
+  // все, что приходит из UART, передаем серверу
+  while (Serial.available() > 0) {
+    char inChr = Serial.read();
+    if (client.connected()) {
+      client.print(inChr);
+    }
+  }
+
+  // если сервер отключился, останавливаем клиент
+  if (!client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting.");
+    client.stop();
+    while (true); // останавливается
+  }
+
+
+  
   //PingCheck();
 
-  if(!pingTimeout) {
-    isServerAvailable = false;
-  }
+//  if(!pingTimeout) {
+//    isServerAvailable = false;
+//  }
 
   if(!msTimer1 && isServerAvailable) {
     toggle = !toggle;
@@ -268,47 +316,47 @@ void loop() {
         Serial.print(uid[i], HEX); 
       }
       Serial.println();
-      sendToTwitter();    
+      //sendToTwitter();    
       msTimer = msTimerPeriod;
     }
   }
 }
 //===============================================
 // called when a ping comes in (replies to it are automatic)
-static void gotPinged (byte* ptr) {
-  ether.printIp(">>> ping from: ", ptr);
-}
-void PingSetup() {
-  ether.parseIp(ether.hisip, SERVER);
-//#endif
-  ether.printIp("SRV: ", ether.hisip);
-    
-  // call this to report others pinging us
-  ether.registerPingCallback(gotPinged);
-  
-  timer = -9999999; // start timing out right away
-}
-void PingCheck() {
-  word len = ether.packetReceive(); // go receive new packets
-  word pos = ether.packetLoop(len); // respond to incoming pings
-  
-  // report whenever a reply to our outgoing ping comes back
-  if (len > 0 && ether.packetLoopIcmpCheckReply(ether.hisip)) {
-    Serial.print("  ");
-    Serial.print((micros() - timer) * 0.001, 3);
-    Serial.println(" ms");
-    pingTimeout = 7000;
-    isServerAvailable = true;
-  }
-  
-  // ping a remote server once every few seconds
-  if (micros() - timer >= 5000000) {
-    ether.printIp("Pinging: ", ether.hisip);
-    timer = micros();
-    ether.clientIcmpRequest(ether.hisip);
-    
-  }
-}
+//static void gotPinged (byte* ptr) {
+//  ether.printIp(">>> ping from: ", ptr);
+//}
+//void PingSetup() {
+//  ether.parseIp(ether.hisip, SERVER);
+////#endif
+//  ether.printIp("SRV: ", ether.hisip);
+//    
+//  // call this to report others pinging us
+//  ether.registerPingCallback(gotPinged);
+//  
+//  timer = -9999999; // start timing out right away
+//}
+//void PingCheck() {
+//  word len = ether.packetReceive(); // go receive new packets
+//  word pos = ether.packetLoop(len); // respond to incoming pings
+//  
+//  // report whenever a reply to our outgoing ping comes back
+//  if (len > 0 && ether.packetLoopIcmpCheckReply(ether.hisip)) {
+//    Serial.print("  ");
+//    Serial.print((micros() - timer) * 0.001, 3);
+//    Serial.println(" ms");
+//    pingTimeout = 7000;
+//    isServerAvailable = true;
+//  }
+//  
+//  // ping a remote server once every few seconds
+//  if (micros() - timer >= 5000000) {
+//    ether.printIp("Pinging: ", ether.hisip);
+//    timer = micros();
+//    ether.clientIcmpRequest(ether.hisip);
+//    
+//  }
+//}
 //===============================================
 void SetupTimer() {
   // инициализация Timer1
@@ -329,7 +377,7 @@ void SetupTimer() {
 ISR(TIMER1_COMPA_vect)
 {
   if(msTimer)msTimer--;
-  if(msTimer1)msTimer1--;
+//  if(msTimer1)msTimer1--;
   if(msTimer2)msTimer2--;
   if(msTimer3)msTimer3--;
 }
