@@ -18,7 +18,7 @@
 #define BuzzerPlayTime 40
 #define BuzzerFrequency 2700
 
-#define msTimer2 pingTimeout
+#define msTimer2 NoConnectionTimout
 #define msTimer3 NFCCardReadTime
 #define msTimer4 ReconnectTime
 #define ButtonBlockTimeout 1000
@@ -49,7 +49,8 @@ char tcpBuffer[100];
 #define PN532_RESET (3)
 Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 // ======================================================================
-void SetupNFC() {
+void SetupNFC() 
+{
   digitalWrite(ledRed, HIGH);
   digitalWrite(ledGreen, LOW);
   nfc.begin();
@@ -79,7 +80,8 @@ void SetupNFC() {
   Serial.println("Waiting for an ISO14443A card");
 }
 //===============================================
-void CheckNFC() {
+void CheckNFC() 
+{
   boolean success;
   success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
   
@@ -116,9 +118,20 @@ void CheckNFC() {
   }
 }
 //===============================================
-void setup() {
-
+void setup() 
+{
   Serial.begin(115200);
+
+  Serial.print("UniqueID: ");
+  for (size_t i = 0; i < UniqueIDsize; i++)
+  {
+    if (UniqueID[i] < 0x10)
+      Serial.print("0");
+    Serial.print(UniqueID[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+  
   pinMode(button1, INPUT);
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
@@ -135,12 +148,18 @@ void setup() {
   SetupTimer();
   SetupNFC();
   CheckNFC();
-  
+
+  for (size_t i = 0; i < 6; i++)
+  {
+    mac[i] = UniqueID[i+3];
+  }
+   
   Ethernet.begin(mac, ip); // инициализация контроллера
   Serial.begin(115200);
 }
 //===============================================
-void loop() {
+void loop() 
+{
   // все, что приходит с сервера, печатаем в UART
   if (client.available()) {
     char chr = client.read();
@@ -150,13 +169,19 @@ void loop() {
   if(!client.connected() && !ReconnectTime) {
     ReconnectTime = 100;
     client.connect(ipServ, PORT);
+    isServerAvailable = false;
   }
 
-//  if(!msTimer1 && isServerAvailable) {
-//    toggle = !toggle;
-//    digitalWrite(ledYellow, toggle);
-//    msTimer1 = 200;
-//  }
+  if(!NoConnectionTimout) {
+    isServerAvailable = true;
+    NoConnectionTimout = 3000;
+  }
+  
+  if(!msTimer1 && isServerAvailable) {
+    toggle = !toggle;
+    digitalWrite(ledYellow, toggle);
+    msTimer1 = 200;
+  }
 
   if(!NFCCardReadTime){
     noTone(buzzer);
@@ -197,7 +222,8 @@ void loop() {
   }
 }
 //===============================================
-void SetupTimer() {
+void SetupTimer() 
+{
   // инициализация Timer1
     cli();  // отключить глобальные прерывания
     TCCR1A = 0;   // установить регистры в 0
