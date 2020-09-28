@@ -37,6 +37,7 @@ uint32_t msTimer2;
 uint32_t msTimer3;
 
 static uint32_t timer;
+char tcpBuffer[100];
 
 #define PN532_IRQ   (2)
 #define PN532_RESET (3)
@@ -234,7 +235,7 @@ void setup() {
   delay(1000);
   Serial.println("connecting...");
   // устанавливаем соединение с сервером
-  if (client.connect(ipServ, 80)) {
+  if (client.connect(ipServ, 4567)) {
     Serial.println("connected"); // успешно
   }
   else {
@@ -254,7 +255,8 @@ void loop() {
   while (Serial.available() > 0) {
     char inChr = Serial.read();
     if (client.connected()) {
-      client.print(inChr);
+      
+      client.println("asdffffffffff");
     }
   }
 
@@ -316,7 +318,12 @@ void loop() {
         Serial.print(uid[i], HEX); 
       }
       Serial.println();
-      //sendToTwitter();    
+      //sendToTwitter();
+      
+      int lenOfTcp = sprintf(tcpBuffer, "%d %02X%02X%02X%02X", pressedButton, uid[0], uid[1], uid[2], uid[3]);
+      client.println(tcpBuffer);
+//      client.println(pressedButton); 
+//      client.println();
       msTimer = msTimerPeriod;
     }
   }
