@@ -131,7 +131,14 @@ void setup()
     Serial.print(" ");
   }
   Serial.println();
-  
+
+   for (size_t i = 0; i < 6; i++)
+  {
+    mac[i] = UniqueID[i+3];
+  }
+
+  Ethernet.begin(mac, ip); // инициализация контроллера
+
   pinMode(button1, INPUT);
   pinMode(button2, INPUT);
   pinMode(button3, INPUT);
@@ -148,14 +155,6 @@ void setup()
   SetupTimer();
   SetupNFC();
   CheckNFC();
-
-  for (size_t i = 0; i < 6; i++)
-  {
-    mac[i] = UniqueID[i+3];
-  }
-   
-  Ethernet.begin(mac, ip); // инициализация контроллера
-  Serial.begin(115200);
 }
 //===============================================
 void loop() 
